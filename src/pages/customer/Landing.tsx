@@ -23,7 +23,7 @@ export default function Landing() {
                                 muted 
                                 loop
                                 /* Using the Hotel Tour.mp4 from the public directory */
-                                src="/Hotel%20Tour.mp4"
+                                src="/HotelTour.mp4"
                             >
                                 Your browser does not support the video tag.
                             </video>
