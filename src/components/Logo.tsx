@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-const LOGO_SRC = '/grand-hotel-logo.png';
+export const LOGO_SRC = '/grand-hotel-logo.png';
 
 /** Top-left header logo only — rest of the layout stays unchanged */
 export default function Logo() {
