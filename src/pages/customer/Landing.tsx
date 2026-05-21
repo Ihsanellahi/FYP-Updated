@@ -15,9 +15,9 @@ export default function Landing() {
                     
                     {/* Video Section */}
                     <div className="flex justify-center mb-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                        <div className="relative w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-800/30">
+                        <div className="relative w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-800/30 bg-blue-950/50">
                             <video 
-                                className="w-full h-full object-cover"
+                                className="w-full h-auto block"
                                 controls 
                                 autoPlay 
                                 muted 
