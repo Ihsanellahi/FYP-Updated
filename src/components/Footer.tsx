@@ -86,18 +86,18 @@ export default function Footer() {
                         <ul className="space-y-3 text-sm">
                             <li className="flex items-start gap-3">
                                 <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
-                                <span>123 Luxury Avenue, Colombo, Sri Lanka</span>
+                                <span>University of Central Punjab, Lahore</span>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Phone className="h-4 w-4 shrink-0 text-primary" />
-                                <a href="tel:+94112345678" className="hover:text-white transition-colors">
-                                    +94 11 234 5678
+                                <a href="tel:+923444100702" className="hover:text-white transition-colors">
+                                    +923444100702
                                 </a>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Mail className="h-4 w-4 shrink-0 text-primary" />
-                                <a href="mailto:info@grandhotel.com" className="hover:text-white transition-colors">
-                                    info@grandhotel.com
+                                <a href="mailto:harisautomates@gmail.com" className="hover:text-white transition-colors">
+                                    harisautomates@gmail.com
                                 </a>
                             </li>
                         </ul>
