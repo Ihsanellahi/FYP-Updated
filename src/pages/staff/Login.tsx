@@ -30,7 +30,7 @@ export default function Login() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-gradient-to-br from-blue-600 to-indigo-700">
+        <div className="flex min-h-screen flex-col bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950">
             <div className="flex flex-1 items-center justify-center p-4">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">

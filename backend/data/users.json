@@ -50,5 +50,13 @@
     "phone": "+923234567891",
     "password": "hello123",
     "role": "customer"
+  },
+  {
+    "id": "user-1779723992389",
+    "name": "Ihsan boy",
+    "email": "ihsan@gmail.com",
+    "phone": "+923334567890",
+    "password": "hello123",
+    "role": "customer"
   }
 ]

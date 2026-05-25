@@ -17,7 +17,7 @@ export default function Landing() {
                             <img
                                 src={LOGO_SRC}
                                 alt="Grand Hotel"
-                                className="relative h-20 md:h-28 w-auto object-contain drop-shadow-2xl"
+                                className="relative h-20 md:h-28 w-auto object-contain drop-shadow-2xl rounded-2xl"
                                 style={{ filter: 'drop-shadow(0 8px 32px rgba(255,255,255,0.25))' }}
                             />
                         </div>
