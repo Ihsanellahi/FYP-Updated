@@ -58,5 +58,13 @@
     "phone": "+923334567890",
     "password": "hello123",
     "role": "customer"
+  },
+  {
+    "id": "user-1779725275466",
+    "name": "Test User",
+    "email": "test@example.com",
+    "phone": "",
+    "password": "password123",
+    "role": "customer"
   }
 ]
