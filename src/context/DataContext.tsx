@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import type { Booking, Complaint, Emergency, Feedback } from '@/types';
 import { bookingsAPI, complaintsAPI, emergenciesAPI, feedbackAPI } from '@/lib/api';

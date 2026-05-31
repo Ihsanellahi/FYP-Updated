@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+'use client';
+
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authAPI } from '@/lib/api';
 
 interface AuthUser {
@@ -20,11 +22,20 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<AuthUser | null>(() => {
+    const [user, setUser] = useState<AuthUser | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
         const stored = localStorage.getItem('auth-user');
-        return stored ? JSON.parse(stored) : null;
-    });
-    const [loading, setLoading] = useState(false);
+        if (stored) {
+            try {
+                setUser(JSON.parse(stored));
+            } catch (e) {
+                console.error('Failed to parse auth-user from localStorage:', e);
+            }
+        }
+        setLoading(false);
+    }, []);
 
     const login = async (email: string, password: string): Promise<boolean> => {
         try {

@@ -1,136 +1,92 @@
-# Hotel Management API - Node.js Backend
+# Grand Hotel Management API — FastAPI Backend
 
-This is the Node.js/Express backend API for the Hotel Management System.
+## Tech Stack
 
-## 🚀 Getting Started
+| Technology  | Details             |
+|-------------|---------------------|
+| Language    | Python              |
+| Runtime     | Python Environment  |
+| Framework   | FastAPI             |
+| Entry Point | `main.py`           |
+| Dev Tool    | Uvicorn with reload |
+| Other       | CORS middleware     |
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
+## Setup & Run
 
-### Installation
-
+### 1. Install dependencies
 ```bash
-# Navigate to backend directory
-cd backend
-
-# Install dependencies
-npm install
+pip install -r requirements.txt
 ```
 
-### Running the Server
-
+### 2. Start the development server
 ```bash
-# Development mode (with nodemon)
-npm run dev
-
-# Production mode
-npm start
+python -m uvicorn main:app --reload --port 3001
 ```
 
-The server will start on `http://localhost:3001` by default.
+The API will be live at **http://localhost:3001**
 
-## 📡 API Endpoints
+## API Endpoints
 
-### Rooms
-- `GET /api/rooms` - Get all rooms
-- `GET /api/rooms/:id` - Get room by ID
-- `PATCH /api/rooms/:id` - Update room (availability, etc.)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
+| POST | `/api/auth/login` | Login |
+| POST | `/api/auth/register` | Register new customer |
+| GET | `/api/auth/verify` | Verify token |
+| GET | `/api/rooms` | List all rooms |
+| GET | `/api/rooms/{id}` | Get room by ID |
+| PATCH | `/api/rooms/{id}` | Update room |
+| GET | `/api/bookings` | List all bookings |
+| GET | `/api/bookings/{id}` | Get booking by ID |
+| POST | `/api/bookings` | Create booking |
+| PATCH | `/api/bookings/{id}` | Update booking |
+| GET | `/api/complaints` | List complaints |
+| POST | `/api/complaints` | Create complaint |
+| PATCH | `/api/complaints/{id}` | Update complaint |
+| GET | `/api/emergencies` | List emergencies |
+| POST | `/api/emergencies` | Create emergency |
+| PATCH | `/api/emergencies/{id}` | Update emergency |
+| GET | `/api/feedback` | List feedback |
+| POST | `/api/feedback` | Submit feedback |
+| GET | `/api/staff` | List staff |
+| POST | `/api/staff` | Add staff member |
+| PATCH | `/api/staff/{id}` | Update staff |
+| DELETE | `/api/staff/{id}` | Delete staff |
+| GET | `/api/users` | List all users |
+| DELETE | `/api/users/{id}` | Delete user |
+| GET | `/api/analytics` | Analytics data |
+| GET | `/api/analytics/activity` | Activity feed |
 
-### Bookings
-- `GET /api/bookings` - Get all bookings
-- `GET /api/bookings/:id` - Get booking by ID
-- `POST /api/bookings` - Create new booking
-- `PATCH /api/bookings/:id` - Update booking
+## Interactive Docs
 
-### Complaints
-- `GET /api/complaints` - Get all complaints
-- `GET /api/complaints/:id` - Get complaint by ID
-- `POST /api/complaints` - Create new complaint
-- `PATCH /api/complaints/:id` - Update complaint
+FastAPI auto-generates interactive API documentation:
+- **Swagger UI**: http://localhost:3001/docs
+- **ReDoc**: http://localhost:3001/redoc
 
-### Emergencies
-- `GET /api/emergencies` - Get all emergencies
-- `GET /api/emergencies/:id` - Get emergency by ID
-- `POST /api/emergencies` - Create new emergency
-- `PATCH /api/emergencies/:id` - Update emergency
+## Default Credentials
 
-### Feedback
-- `GET /api/feedback` - Get all feedback
-- `POST /api/feedback` - Create new feedback
+| Role  | Email                    | Password   |
+|-------|--------------------------|------------|
+| Admin | `admin@grandhotel.com`   | `admin123` |
+| Staff | `alice@grandhotel.com`   | `staff123` |
 
-### Staff
-- `GET /api/staff` - Get all staff members
-- `GET /api/staff/:id` - Get staff by ID
-- `POST /api/staff` - Create new staff member
-- `PATCH /api/staff/:id` - Update staff member
-- `DELETE /api/staff/:id` - Delete staff member
-
-### Authentication
-- `POST /api/auth/login` - Login (email, password)
-- `GET /api/auth/verify` - Verify token
-
-### Analytics
-- `GET /api/analytics` - Get analytics data
-- `GET /api/analytics/activity` - Get activity feed
-
-### Health Check
-- `GET /api/health` - Check API health status
-
-## 🔐 Demo Credentials
-
-### Admin
-- Email: `admin@grandhotel.com`
-- Password: `admin123`
-
-### Staff
-- Email: `alice@grandhotel.com`
-- Password: `staff123`
-
-## 📦 Project Structure
+## Project Structure
 
 ```
 backend/
+├── main.py              ← FastAPI app entry point
+├── requirements.txt     ← Python dependencies
 ├── data/
-│   ├── mockData.js      # Initial mock data
-│   └── store.js         # In-memory data store with CRUD operations
-├── routes/
-│   ├── rooms.js         # Room routes
-│   ├── bookings.js      # Booking routes
-│   ├── complaints.js    # Complaint routes
-│   ├── emergencies.js   # Emergency routes
-│   ├── feedback.js      # Feedback routes
-│   ├── staff.js         # Staff routes
-│   ├── auth.js          # Authentication routes
-│   └── analytics.js     # Analytics routes
-├── server.js            # Express server setup
-└── package.json         # Dependencies and scripts
+│   ├── mock_data.py     ← Seed data
+│   └── store.py         ← In-memory store + users.json persistence
+└── routers/
+    ├── auth.py
+    ├── rooms.py
+    ├── bookings.py
+    ├── complaints.py
+    ├── emergencies.py
+    ├── feedback.py
+    ├── staff.py
+    ├── users.py
+    └── analytics.py
 ```
-
-## 🔧 Configuration
-
-The server can be configured using environment variables:
-
-- `PORT` - Server port (default: 3001)
-
-Example:
-```bash
-PORT=3001 npm start
-```
-
-## 📝 Notes
-
-- **In-Memory Storage**: Data is stored in memory and resets on server restart
-- **CORS Enabled**: CORS is enabled for all origins (for demo purposes)
-- **Mock Authentication**: Authentication is simplified for demo purposes
-- **No Database**: Uses in-memory data store (can be replaced with a database)
-
-## 🔄 Next Steps
-
-To make this production-ready:
-1. Add a database (MongoDB, PostgreSQL, etc.)
-2. Implement proper JWT authentication
-3. Add input validation and sanitization
-4. Add rate limiting
-5. Add logging and error tracking
-6. Add API documentation (Swagger/OpenAPI)

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Mail, Phone, MapPin, MessageCircle, Calendar, FileText } from 'lucide-react';
 import { LOGO_SRC } from '@/constants/logos';
 import { cn } from '@/lib/utils';
@@ -16,11 +16,11 @@ export default function Footer() {
     const currentYear = new Date().getFullYear();
 
     return (
-        <footer className="mt-auto border-t border-blue-900/40 bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 text-slate-300">
+        <footer className="mt-auto border-t border-blue-900/40 bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 text-slate-300 font-sans">
             <div className="container mx-auto px-4 py-12">
                 <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
-                        <Link to="/" className="group mb-4 flex items-center space-x-3">
+                        <Link href="/" className="group mb-4 flex items-center space-x-3">
                             <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white shadow-md shadow-blue-950/50">
                                 <img
                                     src={LOGO_SRC}
@@ -42,22 +42,22 @@ export default function Footer() {
                         </h3>
                         <ul className="space-y-2.5 text-sm">
                             <li>
-                                <Link to="/" className={footerLink}>
+                                <Link href="/" className={footerLink}>
                                     Home
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/chat" className={footerLink}>
+                                <Link href="/chat" className={footerLink}>
                                     AI Chat Assistant
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/availability" className={footerLink}>
+                                <Link href="/availability" className={footerLink}>
                                     Room Availability
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/help" className={footerLink}>
+                                <Link href="/help" className={footerLink}>
                                     Help & FAQ
                                 </Link>
                             </li>
@@ -70,7 +70,7 @@ export default function Footer() {
                         </h3>
                         <ul className="space-y-2.5 text-sm">
                             <li>
-                                <Link to="/booking" className={cn('group flex items-center gap-3', footerLink)}>
+                                <Link href="/booking" className={cn('group flex items-center gap-3', footerLink)}>
                                     <span className={iconBadge}>
                                         <Calendar className="h-4 w-4" />
                                     </span>
@@ -78,7 +78,7 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/complaint" className={cn('group flex items-center gap-3', footerLink)}>
+                                <Link href="/complaint" className={cn('group flex items-center gap-3', footerLink)}>
                                     <span className={iconBadge}>
                                         <FileText className="h-4 w-4" />
                                     </span>
@@ -86,7 +86,7 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/feedback" className={cn('group flex items-center gap-3', footerLink)}>
+                                <Link href="/feedback" className={cn('group flex items-center gap-3', footerLink)}>
                                     <span className={iconBadge}>
                                         <MessageCircle className="h-4 w-4" />
                                     </span>
@@ -95,7 +95,7 @@ export default function Footer() {
                             </li>
                             <li>
                                 <Link
-                                    to="/emergency"
+                                    href="/emergency"
                                     className="group flex items-center gap-3 text-red-300 transition-colors hover:text-red-200"
                                 >
                                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/15 text-red-300 ring-1 ring-red-400/30 transition-colors group-hover:bg-red-500/25 group-hover:text-red-200">
@@ -149,13 +149,13 @@ export default function Footer() {
                 <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-blue-800/40 pt-8 text-sm text-slate-500 sm:flex-row">
                     <p>&copy; {currentYear} Grand Hotel. All rights reserved.</p>
                     <div className="flex gap-6">
-                        <Link to="/help" className={footerLink}>
+                        <Link href="/help" className={footerLink}>
                             Privacy Policy
                         </Link>
-                        <Link to="/help" className={footerLink}>
+                        <Link href="/help" className={footerLink}>
                             Terms of Service
                         </Link>
-                        <Link to="/staff/login" className={footerLink}>
+                        <Link href="/staff/login" className={footerLink}>
                             Staff Login
                         </Link>
                     </div>

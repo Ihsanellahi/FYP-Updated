@@ -1,5 +1,8 @@
+'use client';
+
 import { useState } from 'react';
-import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { LOGO_NO_BG_SRC } from '@/constants/logos';
 import {
@@ -18,10 +21,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export default function DashboardLayout() {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, logout } = useAuth();
-    const navigate = useNavigate();
-    const location = useLocation();
+    const router = useRouter();
+    const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
@@ -32,7 +35,7 @@ export default function DashboardLayout() {
     const handleLogoutConfirm = () => {
         setShowLogoutConfirm(false);
         logout();
-        navigate('/staff/login');
+        router.push('/staff/login');
     };
 
     const handleLogoutCancel = () => {
@@ -51,7 +54,7 @@ export default function DashboardLayout() {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-100 font-sans">
             {/* Top Header */}
             <header className="bg-white border-b h-[6rem] flex items-center justify-between px-4 sticky top-0 z-30">
                 <div className="flex items-center space-x-3">
@@ -90,11 +93,11 @@ export default function DashboardLayout() {
                     <nav className="p-4 space-y-1">
                         {navItems.map((item) => {
                             const Icon = item.icon;
-                            const isActive = location.pathname === item.path;
+                            const isActive = pathname === item.path;
                             return (
                                 <Link
                                     key={item.path}
-                                    to={item.path}
+                                    href={item.path}
                                     onClick={() => setSidebarOpen(false)}
                                     className={`
                     flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
@@ -114,7 +117,7 @@ export default function DashboardLayout() {
 
                 {/* Main Content */}
                 <main className="flex-1 p-6 lg:p-8">
-                    <Outlet />
+                    {children}
                 </main>
             </div>
 

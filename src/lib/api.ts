@@ -1,6 +1,6 @@
 // API utility functions for making HTTP requests to the backend
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 async function fetchAPI(endpoint: string, options: RequestInit = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
@@ -110,7 +110,7 @@ export const authAPI = {
     }),
     verify: () => fetchAPI('/auth/verify', {
         headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('token') : ''}`,
         },
     }),
 };
