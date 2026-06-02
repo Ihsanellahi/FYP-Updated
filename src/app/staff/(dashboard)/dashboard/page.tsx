@@ -38,8 +38,8 @@ export default function Dashboard() {
     };
 
     const totalUsers = users.length;
-    const customersCount = users.filter(u => u.role === 'customer').length;
-    const staffAdminCount = users.filter(u => u.role === 'admin' || u.role === 'staff').length;
+    const customersCount = users.filter(u => u.role?.toLowerCase() === 'customer').length;
+    const staffAdminCount = users.filter(u => u.role?.toLowerCase() === 'admin' || u.role?.toLowerCase() === 'staff').length;
 
     return (
         <div className="space-y-6 font-sans">
