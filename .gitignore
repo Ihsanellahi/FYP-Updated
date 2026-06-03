@@ -40,3 +40,11 @@ __pycache__/
 venv/
 env/
 
+# Firebase local cache
+.firebase/
+
+# Agents / Antigravity cache
+.agents/
+skills-lock.json
+
+

@@ -16,7 +16,6 @@ export default function Landing() {
                     <div className="relative w-full aspect-[21/9] md:aspect-[25/9] overflow-hidden shadow-2xl bg-blue-950/50">
                         <video 
                             className="w-full h-full object-cover block"
-                            controls 
                             autoPlay 
                             muted 
                             loop

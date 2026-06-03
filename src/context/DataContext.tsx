@@ -43,7 +43,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setEmergencies(emergenciesData);
             setFeedback(feedbackData);
         } catch (error) {
-            console.error('Failed to fetch data:', error);
+            // Backend is currently separated/unavailable, silencing this error to keep the console clean
+            console.warn('Backend unavailable, using default empty state for data.');
         } finally {
             setLoading(false);
         }

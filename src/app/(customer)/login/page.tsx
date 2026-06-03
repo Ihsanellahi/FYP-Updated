@@ -11,7 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 function LoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { login } = useAuth();
+    const { login, loginWithGoogle, loginWithApple } = useAuth();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -34,6 +34,42 @@ function LoginContent() {
             }
         } catch (err) {
             setError('An error occurred during login.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        setIsLoading(true);
+        setError('');
+        try {
+            const success = await loginWithGoogle();
+            if (success) {
+                const from = searchParams.get('from') || '/';
+                router.replace(from);
+            } else {
+                setError('Google sign-in failed');
+            }
+        } catch (err) {
+            setError('An error occurred during Google login.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleAppleLogin = async () => {
+        setIsLoading(true);
+        setError('');
+        try {
+            const success = await loginWithApple();
+            if (success) {
+                const from = searchParams.get('from') || '/';
+                router.replace(from);
+            } else {
+                setError('Apple sign-in failed');
+            }
+        } catch (err) {
+            setError('An error occurred during Apple login.');
         } finally {
             setIsLoading(false);
         }
@@ -121,7 +157,13 @@ function LoginContent() {
                         </div>
 
                         <div className="mt-6 grid grid-cols-2 gap-4">
-                            <Button variant="outline" className="h-11 rounded-xl border-slate-200 bg-white/50 hover:bg-white text-slate-700">
+                            <Button 
+                                type="button"
+                                variant="outline" 
+                                className="h-11 rounded-xl border-slate-200 bg-white/50 hover:bg-white text-slate-700"
+                                onClick={handleGoogleLogin}
+                                disabled={isLoading}
+                            >
                                 <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -130,7 +172,13 @@ function LoginContent() {
                                 </svg>
                                 Google
                             </Button>
-                            <Button variant="outline" className="h-11 rounded-xl border-slate-200 bg-white/50 hover:bg-white text-slate-700">
+                            <Button 
+                                type="button"
+                                variant="outline" 
+                                className="h-11 rounded-xl border-slate-200 bg-white/50 hover:bg-white text-slate-700"
+                                onClick={handleAppleLogin}
+                                disabled={isLoading}
+                            >
                                 <Apple className="mr-2 h-5 w-5" />
                                 Apple
                             </Button>

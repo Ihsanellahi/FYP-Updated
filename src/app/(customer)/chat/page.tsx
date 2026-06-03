@@ -8,9 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import type { ChatMessage } from '@/types';
 import { LOGO_NO_BG_SRC } from '@/constants/logos';
+import { useAuth } from '@/context/AuthContext';
+import { useData } from '@/context/DataContext';
 
 export default function Chat() {
     const router = useRouter();
+    const { user } = useAuth();
+    const { refreshData } = useData();
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: '1',
@@ -23,15 +27,45 @@ export default function Chat() {
     const [isTyping, setIsTyping] = useState(false);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-    // Voice Call Simulation State
+    // Voice Call Simulation & Speech API State
     const [isCalling, setIsCalling] = useState(false);
     const [callStatus, setCallStatus] = useState<'ringing' | 'connected' | 'ended'>('ringing');
     const [callDuration, setCallDuration] = useState(0);
     const [isMuted, setIsMuted] = useState(false);
-    const [isSpeakerOn, setIsSpeakerOn] = useState(false);
+    const [isSpeakerOn, setIsSpeakerOn] = useState(true); // Default to true so user hears output
     const [callTranscript, setCallTranscript] = useState<string>('');
     const [isAITalking, setIsAITalking] = useState(false);
+    
+    const recognitionRef = useRef<any>(null);
+    const isMutedRef = useRef(false);
+    const isAITalkingRef = useRef(false);
+    const isWaitingForAIRef = useRef(false);
+    const callStatusRef = useRef(callStatus);
+    const isSpeakerOnRef = useRef(isSpeakerOn);
+    const messagesRef = useRef<ChatMessage[]>([]);
 
+    // Keep refs in sync for event listeners and async handlers
+    useEffect(() => {
+        isMutedRef.current = isMuted;
+    }, [isMuted]);
+
+    useEffect(() => {
+        isAITalkingRef.current = isAITalking;
+    }, [isAITalking]);
+
+    useEffect(() => {
+        callStatusRef.current = callStatus;
+    }, [callStatus]);
+
+    useEffect(() => {
+        isSpeakerOnRef.current = isSpeakerOn;
+    }, [isSpeakerOn]);
+
+    useEffect(() => {
+        messagesRef.current = messages;
+    }, [messages]);
+
+    // Timer for connected call duration
     useEffect(() => {
         let timer: NodeJS.Timeout;
         if (isCalling && callStatus === 'connected') {
@@ -50,24 +84,229 @@ export default function Chat() {
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
+    // Helper to synthesize speech and speak it aloud
+    const speakText = (text: string, callback?: () => void) => {
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+            if (callback) callback();
+            return;
+        }
+
+        // Cancel any active/pending synthesis
+        window.speechSynthesis.cancel();
+
+        if (isSpeakerOnRef.current) {
+            // Remove emojis and special markers for cleaner reading
+            const cleanText = text
+                .replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, "")
+                .replace(/\*+/g, "")
+                .trim();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            
+            setIsAITalking(true);
+            isAITalkingRef.current = true;
+            
+            utterance.onend = () => {
+                setIsAITalking(false);
+                isAITalkingRef.current = false;
+                isWaitingForAIRef.current = false;
+                if (callback) callback();
+            };
+            utterance.onerror = () => {
+                setIsAITalking(false);
+                isAITalkingRef.current = false;
+                isWaitingForAIRef.current = false;
+                if (callback) callback();
+            };
+            window.speechSynthesis.speak(utterance);
+        } else {
+            // Speaker is off, so trigger callback immediately
+            setIsAITalking(false);
+            isAITalkingRef.current = false;
+            isWaitingForAIRef.current = false;
+            if (callback) {
+                setTimeout(callback, 500);
+            }
+        }
+    };
+
+    // Helper to start/resume the SpeechRecognition service
+    const startListening = () => {
+        if (typeof window === 'undefined') return;
+        if (isMutedRef.current || isAITalkingRef.current || isWaitingForAIRef.current) return;
+
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            console.warn("Speech recognition not supported in this browser.");
+            setCallTranscript("Voice call connected. (Speech Recognition not supported in this browser)");
+            return;
+        }
+
+        if (!recognitionRef.current) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                if (!isMutedRef.current && !isAITalkingRef.current && !isWaitingForAIRef.current) {
+                    setCallTranscript('Listening...');
+                }
+            };
+
+            recognition.onresult = async (event: any) => {
+                const transcript = event.results[0][0].transcript;
+                if (transcript) {
+                    // Ignore if muted or already processing/talking
+                    if (isMutedRef.current || isAITalkingRef.current || isWaitingForAIRef.current) {
+                        return;
+                    }
+                    isWaitingForAIRef.current = true;
+                    try { recognition.stop(); } catch(e){}
+                    await handleVoiceInput(transcript);
+                }
+            };
+
+            recognition.onerror = (event: any) => {
+                console.log('Speech recognition error:', event.error);
+                // Restart on silent/no-speech errors if conditions are met
+                if (event.error === 'no-speech') {
+                    if (callStatusRef.current === 'connected' && !isMutedRef.current && !isAITalkingRef.current && !isWaitingForAIRef.current) {
+                        setTimeout(() => {
+                            if (callStatusRef.current === 'connected' && !isMutedRef.current && !isAITalkingRef.current && !isWaitingForAIRef.current) {
+                                try { recognition.start(); } catch (e) {}
+                            }
+                        }, 500);
+                    }
+                }
+            };
+
+            recognition.onend = () => {
+                // Automatically restart if connected, not muted, and not speaking/waiting
+                if (callStatusRef.current === 'connected' && !isMutedRef.current && !isAITalkingRef.current && !isWaitingForAIRef.current) {
+                    setTimeout(() => {
+                        if (callStatusRef.current === 'connected' && !isMutedRef.current && !isAITalkingRef.current && !isWaitingForAIRef.current) {
+                            try { recognition.start(); } catch (e) {}
+                        }
+                    }, 300);
+                }
+            };
+
+            recognitionRef.current = recognition;
+        }
+
+        try {
+            recognitionRef.current.start();
+        } catch (e) {
+            // Already started, ignore
+        }
+    };
+
+    // Send transcribed user input to OpenAI, get back speech response
+    const handleVoiceInput = async (userInputText: string) => {
+        isWaitingForAIRef.current = true;
+        
+        // Stop recognition while processing/talking
+        if (recognitionRef.current) {
+            try { recognitionRef.current.stop(); } catch (e) {}
+        }
+
+        const userMessage: ChatMessage = {
+            id: Date.now().toString(),
+            sender: 'user',
+            message: userInputText,
+            timestamp: new Date().toISOString(),
+        };
+
+        // Add user message to state using latest state ref
+        const updatedMessages = [...messagesRef.current, userMessage];
+        setMessages(updatedMessages);
+        setCallTranscript(`You: "${userInputText}"`);
+        setIsAITalking(true); // show thinking spinner
+
+        try {
+            const userContext = user ? {
+                name: user.name,
+                email: user.email,
+                role: user.role
+            } : null;
+
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: updatedMessages,
+                    userContext
+                })
+            });
+
+            const data = await response.json();
+            const aiMessageText = data.message || data.error || "Sorry, I had trouble connecting.";
+
+            // Add AI response to state
+            setMessages(prev => [
+                ...prev,
+                {
+                    id: (Date.now() + 1).toString(),
+                    sender: 'ai',
+                    message: aiMessageText,
+                    timestamp: new Date().toISOString(),
+                }
+            ]);
+
+            setCallTranscript(`AI: "${aiMessageText}"`);
+            refreshData();
+
+            // Speak AI text, then resume listening when finished
+            speakText(aiMessageText, () => {
+                if (callStatusRef.current === 'connected' && !isMutedRef.current) {
+                    startListening();
+                }
+            });
+
+        } catch (error) {
+            console.error('Failed to get voice response:', error);
+            const errText = "I had trouble responding. Please check your connection.";
+            setCallTranscript(`AI: "${errText}"`);
+            speakText(errText, () => {
+                if (callStatusRef.current === 'connected' && !isMutedRef.current) {
+                    startListening();
+                }
+            });
+        }
+    };
+
+    // Clicking quick option triggers voice input
+    const handleVoiceResponse = (option: string) => {
+        if (callStatus !== 'connected') return;
+        // Stop any current voice output first
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        handleVoiceInput(option);
+    };
+
     const startCall = () => {
         setIsCalling(true);
         setCallStatus('ringing');
         setCallTranscript('Ringing...');
         setIsAITalking(false);
+        isAITalkingRef.current = false;
+        isWaitingForAIRef.current = false;
         setIsMuted(false);
-        setIsSpeakerOn(false);
+        setIsSpeakerOn(true); // Default to speaker on for interactive voice call
+
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
         
         // Ring for 2 seconds, then connect
         setTimeout(() => {
             setCallStatus('connected');
-            setIsAITalking(true);
-            setCallTranscript('Hello! Thank you for calling Grand Hotel Assistant. How can I help you today?');
-            
-            // Turn off talking animation after a short delay
-            setTimeout(() => {
-                setIsAITalking(false);
-            }, 3000);
+            const welcomeText = "Hello! Thank you for calling Grand Hotel Assistant. How can I help you today?";
+            setCallTranscript(welcomeText);
+            speakText(welcomeText, () => {
+                startListening();
+            });
         }, 2000);
     };
 
@@ -75,62 +314,55 @@ export default function Chat() {
         setCallStatus('ended');
         setCallTranscript('Call Ended.');
         setIsAITalking(false);
+        isAITalkingRef.current = false;
+        isWaitingForAIRef.current = false;
+        
+        if (typeof window !== 'undefined') {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        }
+        if (recognitionRef.current) {
+            try {
+                recognitionRef.current.onend = null;
+                recognitionRef.current.onerror = null;
+                recognitionRef.current.onresult = null;
+                recognitionRef.current.stop();
+            } catch (e) {}
+            recognitionRef.current = null;
+        }
+        
         setTimeout(() => {
             setIsCalling(false);
         }, 800);
     };
 
-    const handleVoiceResponse = (option: string) => {
-        if (callStatus !== 'connected') return;
-
-        // User speaks
-        setCallTranscript(`You: "${option}"`);
-        setIsAITalking(false);
-
-        // Simulated AI response delay
-        setTimeout(() => {
-            setIsAITalking(true);
-            switch (option) {
-                case 'Book a Room':
-                    setCallTranscript('AI: "Sure! I\'ve sent a shortcut in our text chat window. Alternatively, I can tell you that our deluxe suites start at $199/night. Would you like to book one?"');
-                    setMessages(prev => [
-                        ...prev,
-                        {
-                            id: Date.now().toString(),
-                            sender: 'user',
-                            message: 'Asked about room booking via voice call',
-                            timestamp: new Date().toISOString(),
-                        },
-                        {
-                            id: (Date.now() + 1).toString(),
-                            sender: 'ai',
-                            message: 'Here is the link to complete your room booking: click on the "Book Room" quick action button or navigate to booking page.',
-                            timestamp: new Date().toISOString(),
-                        }
-                    ]);
-                    break;
-                case 'Room Service':
-                    setCallTranscript('AI: "Our room service is active. What would you like to order today? We have hot meals, fresh juices, and desserts ready to deliver."');
-                    break;
-                case 'Housekeeping':
-                    setCallTranscript('AI: "Understood. I will dispatch housekeeping to your room immediately to assist you with fresh towels or cleaning."');
-                    break;
-                case 'Talk to Agent':
-                    setCallTranscript('AI: "Connecting you to the Front Desk agent now. Please hold..."');
-                    setTimeout(() => {
-                        setCallTranscript('AI: "Connected. Hello, this is Front Desk. How may we help you?"');
-                    }, 2000);
-                    break;
-                default:
-                    setCallTranscript('AI: "I am ready to help you. Let me know what you need."');
+    // Watch mute changes to toggle recognition
+    useEffect(() => {
+        if (callStatus === 'connected') {
+            if (isMuted) {
+                if (recognitionRef.current) {
+                    try { recognitionRef.current.stop(); } catch(e){}
+                }
+                setCallTranscript('Microphone muted.');
+            } else {
+                if (!isAITalking && !window.speechSynthesis.speaking) {
+                    startListening();
+                }
             }
+        }
+    }, [isMuted]);
 
-            // Stop speaking wave animation after 4 seconds
-            setTimeout(() => {
+    // Watch speaker changes to toggle synthesis
+    useEffect(() => {
+        if (callStatus === 'connected' && !isSpeakerOn) {
+            if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
                 setIsAITalking(false);
-            }, 4000);
-        }, 1200);
-    };
+                isAITalkingRef.current = false;
+            }
+        }
+    }, [isSpeakerOn]);
 
     const scrollToBottom = () => {
         if (messagesContainerRef.current) {
@@ -142,31 +374,7 @@ export default function Chat() {
         scrollToBottom();
     }, [messages]);
 
-    const getAIResponse = (userMessage: string): string => {
-        const msg = userMessage.toLowerCase();
-
-        if (msg.includes('book') || msg.includes('room') || msg.includes('reservation')) {
-            return 'I can help you book a room! Click the "Check Availability" button below or visit our rooms page to see available options.';
-        } else if (msg.includes('price') || msg.includes('cost') || msg.includes('rate')) {
-            return 'Our room rates range from $99 for a Single room to $799 for our Presidential Suite. Click "Check Availability" to see all options and current pricing.';
-        } else if (msg.includes('complain') || msg.includes('issue') || msg.includes('problem')) {
-            return "I'm sorry to hear you're experiencing an issue. You can submit a formal complaint using the \"File Complaint\" button below, and our staff will address it promptly.";
-        } else if (msg.includes('emergency') || msg.includes('urgent') || msg.includes('help')) {
-            return 'If this is an emergency, please click the "Emergency" button below immediately. Our staff will respond right away.';
-        } else if (msg.includes('feedback') || msg.includes('review') || msg.includes('rating')) {
-            return "We'd love to hear your feedback! Click the \"Give Feedback\" button below to rate your experience.";
-        } else if (msg.includes('cancel') || msg.includes('modify')) {
-            return 'To modify or cancel a booking, please contact our front desk or use the "File Complaint" option to request changes.';
-        } else if (msg.includes('amenities') || msg.includes('facilities')) {
-            return 'Our hotel offers WiFi, AC, TV, Mini Bar, and some rooms include Balcony, Jacuzzi, Living Room, and more. Check the room details for specific amenities.';
-        } else if (msg.includes('check in') || msg.includes('check out') || msg.includes('checkout') || msg.includes('checkin')) {
-            return 'Standard check-in time is 3:00 PM and check-out is 11:00 AM. Special arrangements can be made upon request.';
-        } else {
-            return "I'm here to help! You can ask me about room bookings, prices, hotel amenities, or use the quick action buttons below for common services.";
-        }
-    };
-
-    const handleSend = () => {
+    const handleSend = async () => {
         if (!input.trim()) return;
 
         const userMessage: ChatMessage = {
@@ -176,21 +384,56 @@ export default function Chat() {
             timestamp: new Date().toISOString(),
         };
 
-        setMessages(prev => [...prev, userMessage]);
+        const updatedMessages = [...messages, userMessage];
+        setMessages(updatedMessages);
         setInput('');
         setIsTyping(true);
 
-        // Simulate AI typing delay
-        setTimeout(() => {
-            const aiMessage: ChatMessage = {
-                id: (Date.now() + 1).toString(),
-                sender: 'ai',
-                message: getAIResponse(input),
-                timestamp: new Date().toISOString(),
-            };
-            setMessages(prev => [...prev, aiMessage]);
+        try {
+            const userContext = user ? {
+                name: user.name,
+                email: user.email,
+                role: user.role
+            } : null;
+
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: updatedMessages,
+                    userContext
+                })
+            });
+
+            const data = await response.json();
+            const aiMessageText = data.message || data.error || "I'm sorry, I'm having trouble connecting right now.";
+
+            setMessages(prev => [
+                ...prev,
+                {
+                    id: (Date.now() + 1).toString(),
+                    sender: 'ai',
+                    message: aiMessageText,
+                    timestamp: new Date().toISOString(),
+                }
+            ]);
+
+            // Trigger background sync to immediately update local client state (bookings/complaints list)
+            refreshData();
+        } catch (error) {
+            console.error('Failed to get AI response:', error);
+            setMessages(prev => [
+                ...prev,
+                {
+                    id: (Date.now() + 1).toString(),
+                    sender: 'ai',
+                    message: "I'm sorry, I encountered an error communicating with the chat agent. Please check your internet connection or try again later.",
+                    timestamp: new Date().toISOString(),
+                }
+            ]);
+        } finally {
             setIsTyping(false);
-        }, 1000);
+        }
     };
 
     const handleQuickAction = (action: string) => {

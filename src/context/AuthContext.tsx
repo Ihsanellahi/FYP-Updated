@@ -13,6 +13,8 @@ interface AuthUser {
 interface AuthContextType {
     user: AuthUser | null;
     login: (email: string, password: string) => Promise<boolean>;
+    loginWithGoogle: () => Promise<boolean>;
+    loginWithApple: () => Promise<boolean>;
     register: (userData: any) => Promise<boolean>;
     logout: () => void;
     isAuthenticated: boolean;
@@ -58,6 +60,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
+    const loginWithGoogle = async (): Promise<boolean> => {
+        try {
+            setLoading(true);
+            const response = await authAPI.loginWithGoogle();
+            if (response.success && response.user) {
+                setUser(response.user);
+                localStorage.setItem('auth-user', JSON.stringify(response.user));
+                if (response.token) {
+                    localStorage.setItem('token', response.token);
+                }
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Google login failed:', error);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loginWithApple = async (): Promise<boolean> => {
+        try {
+            setLoading(true);
+            const response = await authAPI.loginWithApple();
+            if (response.success && response.user) {
+                setUser(response.user);
+                localStorage.setItem('auth-user', JSON.stringify(response.user));
+                if (response.token) {
+                    localStorage.setItem('token', response.token);
+                }
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Apple login failed:', error);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const register = async (userData: any): Promise<boolean> => {
         try {
             setLoading(true);
@@ -81,7 +125,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, loginWithGoogle, loginWithApple, register, logout }}>
             {children}
         </AuthContext.Provider>
     );
