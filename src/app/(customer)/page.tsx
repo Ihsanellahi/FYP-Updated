@@ -13,10 +13,10 @@ export default function Landing() {
             <section className="relative min-h-[calc(100vh-5.5rem)] flex flex-col justify-center items-center overflow-hidden">
                 {/* Full Width Video Background */}
                 <div className="absolute inset-0 z-0">
-                    <video 
+                    <video
                         className="w-full h-full object-cover"
-                        autoPlay 
-                        muted 
+                        autoPlay
+                        muted
                         loop
                         playsInline
                         src="/HotelNewVideo.mp4"
@@ -96,7 +96,7 @@ export default function Landing() {
                                     <div className="flex items-center justify-center w-14 h-14 bg-purple-50 rounded-xl mb-6">
                                         <FileText className="h-7 w-7 text-purple-600" />
                                     </div>
-                                    <h3 className="text-2xl font-semibold mb-3">Complaint & Feedback</h3>
+                                    <h3 className="text-2xl font-semibold mb-3">File your Complaint</h3>
                                     <p className="text-gray-600 text-lg">
                                         Share your concerns or compliments. We value your feedback.
                                     </p>
