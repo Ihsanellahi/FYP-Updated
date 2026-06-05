@@ -1,5 +1,7 @@
 import { roomsAPI, complaintsAPI, emergenciesAPI } from '@/lib/api';
 
+export const maxDuration = 60; // Set max timeout to 60 seconds for Vercel
+
 // Helper: Normalize a date string (any format) to YYYY-MM-DD
 function normalizeToYMD(dateStr: string): string | null {
     if (!dateStr) return null;
