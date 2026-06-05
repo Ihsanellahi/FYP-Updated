@@ -332,7 +332,7 @@ export async function POST(req: Request) {
             '1. First ask for their Full Name (skip if user is authenticated). ' +
             '2. Then ask for their Phone Number. ' +
             '3. Then ask for their Email Address (skip if user is authenticated). ' +
-            '4. Ask for what room types they are looking for and Call listAvailableRooms to list available room types (e.g. Single, Double, Suite, Presidential). ' +
+            '4. Ask for what room types they are looking for and explicitly list the available room types (Single, Double, Suite, Presidential) in your chat message. ' +
             '5. Then ask which specific room number they want from the list. ' +
             '6. Then ask for the Check-in date. ' +
             '7. Then ask for the Check-out date. ' +
