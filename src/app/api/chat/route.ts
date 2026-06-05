@@ -239,12 +239,12 @@ async function executeTool(name: string, args: any, baseUrl: string, userContext
                 if (outDate <= inDate) {
                     return { success: false, error: 'Check-out date must be after check-in date. Please ask the guest for a valid check-out date.' };
                 }
-                // Calculate total price if not provided
-                if (!args.totalPrice && args.roomId) {
+                // Always calculate total price server-side to prevent AI hallucinations
+                if (args.roomId) {
                     const rooms = await fetchFirestoreRooms();
                     const room = rooms.find((r: any) => r.id === args.roomId);
                     if (room) {
-                        const nights = Math.ceil((outDate.getTime() - inDate.getTime()) / (1000 * 60 * 60 * 24));
+                        const nights = Math.max(1, Math.ceil((outDate.getTime() - inDate.getTime()) / (1000 * 60 * 60 * 24)));
                         args.totalPrice = room.price * nights;
                         if (!args.roomNumber) args.roomNumber = room.number;
                         if (!args.roomType) args.roomType = room.type;
