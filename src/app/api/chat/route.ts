@@ -316,9 +316,10 @@ export async function POST(req: Request) {
             '5. Then ask which specific room number they want from the list. ' +
             '6. Then ask for the Check-in date. ' +
             '7. Then ask for the Check-out date. ' +
-            '8. Then ask for the number of Guests. ' +
-            '9. Use the checkRoomAvailability tool to check if the selected room is available for those dates. ' +
-            '10. If the room is available, proceed to confirm the booking using createRoomBooking. If the room is NOT available, display all the rooms of the category the user selected, ask the user to enter another room, and check availability again until an available room is found. Finally, confirm the booking. ' +
+            '8. Use the checkRoomAvailability tool to check if the selected room is available for those dates. ' +
+            '9. If the room is NOT available, display all the rooms of the category the user selected, ask the user to enter another room, and check availability again until an available room is found. ' +
+            '10. Once an available room is confirmed, THEN ask for the number of Guests. ' +
+            '11. Finally, proceed to confirm the booking using createRoomBooking. ' +
             'IMPORTANT DATE RULES: ' +
             '- Always convert guest-provided dates to strict YYYY-MM-DD format (e.g., "June 10" → "2026-06-10", "10/6" → "2026-06-10") before calling createRoomBooking. ' +
             '- If the guest says a date without a year, assume the current year or next year if the date has already passed. ' +
