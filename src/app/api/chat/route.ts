@@ -1,4 +1,4 @@
-import { roomsAPI, bookingsAPI, complaintsAPI, emergenciesAPI } from '@/lib/api';
+import { roomsAPI, complaintsAPI, emergenciesAPI } from '@/lib/api';
 
 // Helper: Normalize a date string (any format) to YYYY-MM-DD
 function normalizeToYMD(dateStr: string): string | null {
@@ -115,7 +115,7 @@ const openAITools = [
 ];
 
 // Tool execution mapping
-async function executeTool(name: string, args: any) {
+async function executeTool(name: string, args: any, baseUrl: string) {
     console.log(`Executing tool: ${name} with args:`, args);
     try {
         if (name === 'listAvailableRooms') {
@@ -168,8 +168,18 @@ async function executeTool(name: string, args: any) {
                 return { success: false, error: `Missing required booking fields: ${missing.join(', ')}. Please collect all information before creating a booking.` };
             }
             console.log('Creating booking with normalized args:', JSON.stringify(args));
-            const newBooking = await bookingsAPI.create(args);
-            return { success: true, booking: newBooking, message: `Booking confirmed! ID: ${newBooking.id}` };
+            // Use /api/bookings endpoint (Firebase Admin SDK) to reliably write to Firestore from server
+            const bookingRes = await fetch(`${baseUrl}/api/bookings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(args),
+            });
+            const bookingData = await bookingRes.json();
+            if (!bookingData.success) {
+                console.error('[createRoomBooking] /api/bookings failed:', bookingData.error);
+                return { success: false, error: bookingData.error || 'Failed to save booking to database.' };
+            }
+            return { success: true, booking: bookingData.booking, message: `Booking confirmed! ID: ${bookingData.booking.id}` };
         }
         
         if (name === 'submitComplaint') {
@@ -201,6 +211,10 @@ async function executeTool(name: string, args: any) {
 
 export async function POST(req: Request) {
     const apiKey = process.env.OPENAI_API_KEY;
+    // Derive base URL for internal API calls
+    const origin = req.headers.get('origin') || req.headers.get('host')
+        ? `${req.headers.get('x-forwarded-proto') || 'http'}://${req.headers.get('host')}`
+        : 'http://localhost:3000';
     if (!apiKey) {
         return Response.json({
             message: "Chatbot is offline because the OPENAI_API_KEY environment variable is not configured on the server. Please add it to your .env.local file to activate OpenAI chat features."
@@ -311,7 +325,7 @@ export async function POST(req: Request) {
                         console.error('Failed to parse tool arguments:', argsString);
                     }
                     
-                    const toolResult = await executeTool(name, args);
+                    const toolResult = await executeTool(name, args, origin);
                     
                     apiMessages.push({
                         role: 'tool',
