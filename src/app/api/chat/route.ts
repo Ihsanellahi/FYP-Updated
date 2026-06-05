@@ -1,4 +1,4 @@
-import { roomsAPI, complaintsAPI, emergenciesAPI } from '@/lib/api';
+import { complaintsAPI, emergenciesAPI } from '@/lib/api';
 
 export const maxDuration = 60; // Set max timeout to 60 seconds for Vercel
 
@@ -19,6 +19,26 @@ function normalizeToYMD(dateStr: string): string | null {
         }
     } catch {}
     return null;
+}
+
+// Helper: Fetch rooms reliably from Firestore REST API (bypassing Client SDK hanging issues on Vercel)
+async function fetchFirestoreRooms() {
+    const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    const API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+    if (!PROJECT_ID || !API_KEY) throw new Error('Firebase credentials missing');
+    
+    const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/rooms?key=${API_KEY}&pageSize=200`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch rooms from Firestore');
+    
+    const data = await res.json();
+    return (data.documents || []).map((doc: any) => {
+        const out: Record<string, any> = {};
+        for (const [k, v] of Object.entries(doc.fields as Record<string, any>)) {
+            out[k] = v.stringValue ?? v.doubleValue ?? v.booleanValue ?? v.nullValue ?? null;
+        }
+        return out;
+    });
 }
 
 // Define the database schemas/tools in OpenAI format
@@ -138,7 +158,7 @@ async function executeTool(name: string, args: any, baseUrl: string, userContext
     console.log(`Executing tool: ${name} with args:`, args);
     try {
         if (name === 'listAvailableRooms') {
-            const rooms = await roomsAPI.getAll();
+            const rooms = await fetchFirestoreRooms();
             return rooms.filter((r: any) => {
                 if (args.roomType && r.type.toLowerCase() !== args.roomType.toLowerCase()) return false;
                 if (args.maxPrice && r.price > args.maxPrice) return false;
@@ -151,7 +171,7 @@ async function executeTool(name: string, args: any, baseUrl: string, userContext
             
             // Resolve roomId if only roomNumber is provided
             if (!roomId && roomNumber) {
-                const rooms = await roomsAPI.getAll();
+                const rooms = await fetchFirestoreRooms();
                 const room = rooms.find((r: any) => String(r.number) === String(roomNumber));
                 if (room) roomId = room.id;
             }
@@ -192,7 +212,7 @@ async function executeTool(name: string, args: any, baseUrl: string, userContext
 
             // Resolve roomId if only roomNumber is provided
             if (!args.roomId && args.roomNumber) {
-                const rooms = await roomsAPI.getAll();
+                const rooms = await fetchFirestoreRooms();
                 const room = rooms.find((r: any) => String(r.number) === String(args.roomNumber));
                 if (room) args.roomId = room.id;
             }
@@ -221,7 +241,7 @@ async function executeTool(name: string, args: any, baseUrl: string, userContext
                 }
                 // Calculate total price if not provided
                 if (!args.totalPrice && args.roomId) {
-                    const rooms = await roomsAPI.getAll();
+                    const rooms = await fetchFirestoreRooms();
                     const room = rooms.find((r: any) => r.id === args.roomId);
                     if (room) {
                         const nights = Math.ceil((outDate.getTime() - inDate.getTime()) / (1000 * 60 * 60 * 24));
