@@ -257,9 +257,9 @@ export async function POST(req: Request) {
             '1. First ask for their Full Name (skip if user is authenticated). ' +
             '2. Then ask for their Phone Number. ' +
             '3. Then ask for their Email Address (skip if user is authenticated). ' +
-            '4. Call listAvailableRooms to get available rooms, then ask which Room Type or specific Room Number they want. ' +
-            '5. Then ask for the Check-in date. Accept any format the guest provides (e.g. "June 10", "next Friday", "10/6"). ALWAYS convert it to YYYY-MM-DD before using in tool calls. ' +
-            '6. Then ask for the Check-out date. Accept any format. ALWAYS convert to YYYY-MM-DD. ' +
+            '4. Then ask for the Check-in date. Accept any format the guest provides (e.g. "June 10", "next Friday", "10/6"). ' +
+            '5. Then ask for the Check-out date. Accept any format. ' +
+            '6. Call listAvailableRooms to get available rooms, then ask which Room Type or specific Room Number they want from the available options. ' +
             '7. Then ask for the number of Guests. ' +
             'IMPORTANT DATE RULES: ' +
             '- Always convert guest-provided dates to strict YYYY-MM-DD format (e.g., "June 10" → "2026-06-10", "10/6" → "2026-06-10") before calling createRoomBooking. ' +
