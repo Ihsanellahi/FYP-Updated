@@ -53,6 +53,19 @@ export default function FeedbackPage() {
 
         try {
             await addFeedback(newFeedback);
+
+            // Send to n8n feedback agent
+            fetch(process.env.NEXT_PUBLIC_N8N_FEEDBACK_WEBHOOK!, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    guestName: formData.guestName,
+                    guestEmail: formData.guestEmail,
+                    rating: formData.rating,
+                    comments: formData.comments,
+                }),
+            }).catch((err) => console.error('n8n webhook error:', err));
+
             setSubmitted(true);
         } catch (err) {
             console.error('Failed to submit feedback:', err);
@@ -125,8 +138,8 @@ export default function FeedbackPage() {
                                     >
                                         <Star
                                             className={`h-10 w-10 ${star <= formData.rating
-                                                    ? 'fill-yellow-400 text-yellow-400'
-                                                    : 'text-gray-300'
+                                                ? 'fill-yellow-400 text-yellow-400'
+                                                : 'text-gray-300'
                                                 }`}
                                         />
                                     </button>
