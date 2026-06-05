@@ -335,7 +335,7 @@ export async function POST(req: Request) {
             '4. Call listAvailableRooms to fetch all room types. List the available room types (Single, Double, Suite, Presidential) AND add details of these room types (like price, capacity, or amenities) in your chat message, asking what they are looking for. ' +
             '5. Ask for the Check-in date. ' +
             '6. Ask for the Check-out date. ' +
-            '7. Call listAvailableRooms for the selected category. Explicitly list the available room numbers for that category AND add details about those specific rooms in your chat message, then ask which specific room number they want. ' +
+            '7. Call listAvailableRooms for the selected category. Since rooms in the same category have the same details, mention the shared details (like amenities and description) ONLY ONCE, and then explicitly list just the available room numbers (e.g. "All these rooms feature X. Available numbers: 201, 202, 203"). Finally, ask which specific room number they want. ' +
             '8. Use the checkRoomAvailability tool to check if the selected room is available for those dates. ' +
             '9. If the room is available, ask for the number of Guests. If the room is NOT available, display other rooms of the same category, ask them to pick another, and check availability again. ' +
             '10. Finally, confirm the booking using createRoomBooking. ' +
