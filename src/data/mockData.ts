@@ -167,6 +167,7 @@ export const mockEmergencies: Emergency[] = [
     {
         id: 'EMG001',
         type: 'Medical',
+        guestEmail: 'guest1@example.com',
         description: 'Guest fell in lobby, requesting medical assistance',
         contactNumber: '+1234567894',
         location: 'Main Lobby',
@@ -179,6 +180,7 @@ export const mockEmergencies: Emergency[] = [
     {
         id: 'EMG002',
         type: 'Security',
+        guestEmail: 'guest1@example.com',
         description: 'Suspicious person loitering near parking area',
         contactNumber: '+1234567895',
         location: 'Parking Lot B',
@@ -190,6 +192,7 @@ export const mockEmergencies: Emergency[] = [
     {
         id: 'EMG003',
         type: 'Fire',
+        guestEmail: 'guest1@example.com',
         description: 'Smoke detected in room 304',
         contactNumber: '+1234567896',
         location: 'Room 304',
