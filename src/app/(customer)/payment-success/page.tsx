@@ -8,24 +8,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, Loader2 } from 'lucide-react';
 
 // ✅ Fetch booking directly from Firebase REST API — does not depend on state loading
-async function fetchBookingFromFirebase(bookingId: string) {
-    const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-    const API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-    if (!PROJECT_ID || !API_KEY) return null;
 
-    const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/bookings/${bookingId}?key=${API_KEY}`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-
-    const data = await res.json();
-    if (!data.fields) return null;
-
-    const out: Record<string, any> = {};
-    for (const [k, v] of Object.entries(data.fields as Record<string, any>)) {
-        out[k] = v.stringValue ?? v.doubleValue ?? v.booleanValue ?? v.nullValue ?? null;
-    }
-    return out;
-}
 
 function PaymentSuccessContent() {
     const searchParams = useSearchParams();
